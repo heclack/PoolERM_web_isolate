@@ -10,7 +10,7 @@
 
 # production
 /build
-proto/
+/proto/node_modules/
 *protected.js
 # misc
 .DS_Store
