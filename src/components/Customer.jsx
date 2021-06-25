@@ -1,73 +1,195 @@
-import React, {useMemo, useEffect} from "react";
-import {useState, State} from '@hookstate/core';
+import React, {useMemo, useState, useEffect} from "react";
 import 'bulma/css/bulma.css';
-import * as needle from 'needle';
-import useSWR from 'swr';
+import needle from "needle";
+const DummyData = [
+    {
+    "_id": 0,
+    "name": {
+        "first": "Shamu",
+        "middle": "the",
+        "last": "Whale"
+    },
+    "address": {
+        "service": {
+            "street1": "5000 Seaworld Dr",
+            "city": "San Diego",
+            "state": "California",
+            "zip": "92128",
+            "geo": {
+                "lat": 32.7153,
+                "lon": -117.1573
+            },
+            "phone": "555-555-5555"
+        },
+        "billing": {
+            "street1": "5000 Seaworld Dr",
+            "city": "San Diego",
+            "state": "California",
+            "zip": "92128",
+        }
+    },
+    "appointments":{
+        "upcoming":[
+            {
+                "type": "r",
+                "date": "Th",
+                "services":[1, 5, 7]
+            },
+            {
+                "type":"s",
+                "date": "6/4/2021",
+                "services":[9] 
+            }
 
-const formatData=(customer)=>{
-    let {address, name, status, _id} = customer;
-    return({
-        id: _id,
-        fname: `${name.first} ${name.middle[0]}`,
-        lname: name.last,
-        street1: address.service.street1,
-        street2: address.service.street2,
-        city: address.service.city,
-        zip: address.service.zip,
-        status: status  
+        ],
+        "history":{
+            "1/11/2021":{
+                "start": "2:54pm",
+                "end": "3:34pm",
+                "billingCode": [1, 5, 7],
+                "notes":"routine",
+                "servicedBy": "employeeA",
+            }
+        }
+    },
+    "status": 1
+},
+{
+    "_id": 1,
+    "name": {
+        "first": "Captain",
+        "middle": "ARRRGH",
+        "last": "Shipwreck",
+    },
+    "address": {
+        "service": {
+            "street1": "Seaport Village Dr",
+            "city": "San Diego",
+            "state": "California",
+            "zip": "92101",
+            "geo": {
+                "lat": 32.712101,
+                "lon": -117.168759
+            },
+            "phone": "555-555-5555"
+        },
+        "billing": {
+            "street1": "Seaport Village Dr",
+            "city": "San Diego",
+            "state": "California",
+            "zip": "92101",
+        }
+    },
+    "appointments":{
+        "upcoming":[
+            {
+                "type": "r",
+                "date": "Th",
+                "services":[1, 5, 7]
+            }
+        ],
+        "history":{
+            "1/11/2021":{
+                "start": "11:54am",
+                "end": "1:34pm",
+                "billingCode": [1, 5, 7],
+                "notes":"Dead squirrel in Pool",
+                "servicedBy": "employeeB",
+            }
+        }
+    },
+    "status": 1
+},
+{
+    "_id": 2,
+    "name": {
+        "first": "Justin",
+        "middle": "Sentas",
+        "last": "Liaw",
+    },
+    "address": {
+        "service": {
+            "street1": "5409 Harvest Run Dr",
+            "city": "San Diego",
+            "state": "California",
+            "zip": "92130",
+            "geo": {
+                "lat": 32.92443691347847,
+                "lon": -117.2016432715977
+            },
+            "phone": "555-555-5555"
+        },
+        "billing": {
+            "street1": "5409 Harvest Run Dr",
+            "city": "San Diego",
+            "state": "California",
+            "zip": "92130",
+        }
+    },
+    "appointments":{
+        "upcoming":[
+            {
+                "type": "r",
+                "date": "Th",
+                "services":[1, 5, 7]
+            }
+        ],
+        "history":{
+            "1/11/2021":{
+                "start": "3:54pm",
+                "end": "4:34pm",
+                "billingCode": [1, 5, 7],
+                "notes":"",
+                "servicedBy": "employeeA",
+            }
+        }
+    },
+    "status": 1
+}];
+const TableItem = (props)=>{
+    const [customer, setCustomer] = useState(props.customer);
+    const cols = [
+        customer["name"]["first"],
+        customer["name"]["last"],
+        customer["service"]["phone"],
+        customer["appointments"],
+        customer["history"]
+    ]
+    return(
+            <tr>
+                {cols.map(col=> <td>{col}</td>)}
+            </tr>
+        )
+};
+const getCustomers=()=>{
+    return new Promise((resolve, reject)=>{
+        needle('get', 'http://localhost:9999/data').then((response)=>{
+            return resolve(response.body)
+        }).catch((err)=>{
+            return reject(err)
+        })
     })
 };
 
-const TableItem = ({id, fname, lname, street1, street2, city, zip, status})=>{
-    let [_id, setId] = useState(id);
-    let [_fname, setFname] = useState(fname);
-    let [_lname, setLname] = useState(lname);
-    let [_street1, setStreet1] = useState(street1);
-    let [_street2, setStreet2] = useState(street2);
-    let [_city, setCity] = useState(city);
-    let [_zip, setZip] = useState(zip);
-    let [_status, setStatus] = useState(status);
-    return(
-            <tr>
-                <td>{_id}</td>
-                <td>{_fname}</td>
-                <td>{_lname}</td>
-                <td>{_street1}</td>
-                <td>{_street2}</td>
-                <td>{_city}</td>
-                <td>{_zip}</td>
-                <td>{_status}</td>
-            </tr>
-        )
-    };
-    const fetcher = url => needle('get', url).then((response=>response.body)); 
-    export default function Customer(){
-        const {data, error} = useSWR('http://localhost:9999', fetcher);
-        const column = ["id","FirstName", "LastName", "Address", "Apt/Ste", "City", "Zip","Status"];
-        const display = useEffect(()=>{
-            if(error){
-                return <p>Error</p>
-            }else if(!data){
-                return <p>...Loading</p>
-            }else{
-                return data.map(customer=>{
-                    let cust = formatData(customer);
-                    return TableItem(cust)
-                })
-            }
-        }, [data]);
+const Customer=(props)=>{
+    const [customers, setCustomers] = useState({});
+    useEffect(()=>{
+        setCustomers(DummyData)
+    }, );
+    const column = ["First", "Last", "Phone", "Appointments", "History"];
     return(
         <div>
             <table className="table">
                 <thead>
-                    {column.map(col=><th>{col}</th>)}
+                    {column.map(col=><tr>{col}</tr>)}
                 </thead>
                 <tbody>
-                    {display}
+                    {DummyData.map(customer=>customer)}
+     
+                    
                 </tbody>
             </table>
         </div>
     )
-    
-    
 };
+export default Customer;

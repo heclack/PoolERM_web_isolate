@@ -246,13 +246,57 @@ const mockRoute ={
     "requestId": null
 };
 
+const ServicesMenu = [
+    {
+        "_id": "0",
+        "fn": "Quote",
+        "cost": "0.00",
+        "slot": "30"
+    },{
+        "_id": "1",
+        "fn": "Standard Cleaning",
+        "cost": "100.00",
+        "slot": "60"
+    },{
+        "_id": "2",
+        "fn": "Deep Cleaning",
+        "cost": "200.00",
+        "slot": "120"
+    }
+];
+
+const Employees=[
+    {
+        "_id": "0",
+        "name":{
+            "first": "Bob",
+            "middle": "F",
+            "last": "Racoff",
+        },
+        "availability":{
+            "su": "1p-",
+            "mo": "+",
+            "tu": "+",
+            "we": "+",
+            "th": "-3p",
+            "fr": "+",
+            "sa": "-" 
+        }
+    }
+]
+
 app.get('/data', (req, res)=>{
     res.send(data);   
 });
 app.get('/mockHRO', (req, res)=>{
     res.send(mockRoute)
 });
-
+app.get('/services', (req, res)=>{
+    res.send(ServicesMenu)
+});
+app.get('/employees', (req, res)=>{
+    res.send(Employees)
+})
 app.listen(9999, ()=>console.log("server listening on 9999"));
 
 

@@ -1,9 +1,10 @@
 
-import {ApiKey} from './protected';
+import {HereAPI} from './protected';
 import * as needle from 'needle';
 
+
 const GetAppointments=(today = "Th", date="6/4/21")=>{
-    console.log("this data is hardcoded and needs to be replaced before production");        //DEV TO PROD WARNING L10 & L25
+    console.log("this data is hardcoded and needs to be replaced before production");        //DEV TO PROD WARNING L5
     const filterAppointments=(appointments)=>{     
         return ((appointments.type=="r" && appointments.date == today)||(appointments.type=="s" && appointments.dte == date))
     };
@@ -25,23 +26,21 @@ const GetAppointments=(today = "Th", date="6/4/21")=>{
     return needle('get', 'http://localhost:3000/data').then(response=>extractAppointments(response.body)).then(appointments=>appointments).catch(err=>console.log(err));
 };
 
-const OpRoute=async(init, ...appointments)=>{
+const findRoundTripRoute=async()=>{
     try{
+        const appointments = GetAppointments();
         let start, finish;    
         if(!init.test(/[0-9, ]/g)){
             let query = await init.split(" ,").join(",").split(",").join("2%c").split(" ").join("+");
-            let response = await needle('get', `https://geocode.search.hereapi.com/v1/geocode?q=${query}&apiKey=${API}`);
+            let response = await needle('get', `https://geocode.search.hereapi.com/v1/geocode?q=${query}&apiKey=${HereAPI}`);
             let position = await response.body.data.items[0].position;
             start = `${position.lat},${position.lng}`;
         }else{
             start = init
         };
-        let finsih = await start;
-        let url = `https://wse.ls.hereapi.com/2/findsequence.json?start=CurrentLocation;${start}${appointments.join()}&end=Completete;${finish}&mode=fastest;car&apiKey=${API}`;
-        let response = await needle('get', url);
-        let data = await response.body;
-        console.log(data);
-        return data
+        finish = await start;
+        let response = await needle('get', `https://wse.ls.hereapi.com/2/findsequence.json?start=CurrentLocation;${start}${appointments.join()}&end=Completete;${finish}&mode=fastest;car&apiKey=${HereAPI}`;);
+        return response.body;
     }catch(err){
         console.log(err)
     };
